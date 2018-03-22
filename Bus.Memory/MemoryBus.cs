@@ -13,7 +13,7 @@ namespace Bus.Memory
         {
             var t = typeof(T);
 
-            if (subscribers.ContainsKey(t))
+            if (!subscribers.ContainsKey(t))
             {
                 subscribers.Add(t, new List<Func<object, Task>>()
                 {
