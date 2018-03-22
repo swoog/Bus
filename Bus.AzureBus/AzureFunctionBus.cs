@@ -10,7 +10,13 @@ namespace Bus.AzureBus
 {
     public class EventHubConnectionFactory
     {
-        private Dictionary<Type, EventHubClient> eventHubClients = new Dictionary<Type, EventHubClient>();
+        private readonly Dictionary<Type, EventHubClient> eventHubClients = new Dictionary<Type, EventHubClient>();
+        private readonly string connectionString;
+
+        public EventHubConnectionFactory(string connectionString)
+        {
+            this.connectionString = connectionString;
+        }
 
         public EventHubClient GetClient(Type t)
         {
@@ -26,9 +32,9 @@ namespace Bus.AzureBus
             return internalGetClient;
         }
 
-        private static EventHubClient InternalGetClient(Type t)
+        private EventHubClient InternalGetClient(Type t)
         {
-            var connectionStringBuilder = new EventHubsConnectionStringBuilder("")
+            var connectionStringBuilder = new EventHubsConnectionStringBuilder(connectionString)
             {
                 EntityPath = t.Name
             };
