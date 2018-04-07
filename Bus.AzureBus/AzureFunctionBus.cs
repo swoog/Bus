@@ -8,49 +8,14 @@ using Newtonsoft.Json;
 
 namespace Bus.AzureBus
 {
-    public class EventHubConnectionFactory
-    {
-        private readonly Dictionary<Type, EventHubClient> eventHubClients = new Dictionary<Type, EventHubClient>();
-        private readonly string connectionString;
-
-        public EventHubConnectionFactory(string connectionString)
-        {
-            this.connectionString = connectionString;
-        }
-
-        public EventHubClient GetClient(Type t)
-        {
-            if (eventHubClients.ContainsKey(t))
-            {
-                return eventHubClients[t];
-            }
-
-            var internalGetClient = InternalGetClient(t);
-
-            eventHubClients.Add(t, internalGetClient);
-            
-            return internalGetClient;
-        }
-
-        private EventHubClient InternalGetClient(Type t)
-        {
-            var connectionStringBuilder = new EventHubsConnectionStringBuilder(connectionString)
-            {
-                EntityPath = t.Name
-            };
-
-            return EventHubClient.CreateFromConnectionString(connectionStringBuilder.ToString());
-        }
-    }
-
     public class AzureFunctionBus : IBus
     {
-        private readonly EventHubConnectionFactory eventHubConnectionFactory;
+        private readonly EventHubClientFactory eventHubClientFactory;
         private readonly Dictionary<Type, List<Func<object, Task>>> subscribers = new Dictionary<Type, List<Func<object, Task>>>();
 
-        public AzureFunctionBus(EventHubConnectionFactory eventHubConnectionFactory)
+        public AzureFunctionBus(EventHubClientFactory eventHubClientFactory)
         {
-            this.eventHubConnectionFactory = eventHubConnectionFactory;
+            this.eventHubClientFactory = eventHubClientFactory;
         }
 
         public async Task InternalPublish<T>(T message)
@@ -93,7 +58,7 @@ namespace Bus.AzureBus
                 }
             }
 
-            var client = this.eventHubConnectionFactory.GetClient(message.GetType());
+            var client = this.eventHubClientFactory.GetClient(message.GetType());
 
             await client.SendAsync(new EventData(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message))));
         }
