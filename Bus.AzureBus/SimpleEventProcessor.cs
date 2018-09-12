@@ -44,9 +44,17 @@ namespace Bus.AzureBus
                 var obj = JsonConvert.DeserializeObject<T>(data);
 
                 Console.WriteLine($"Message received. Partition: '{context.PartitionId}', Data: '{data}'");
-                await this.handleMessage(obj);
 
-                await context.CheckpointAsync(eventData);
+                try
+                {
+                    await this.handleMessage(obj);
+
+                    await context.CheckpointAsync(eventData);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error in handle : {ex}");
+                }
             }
         }
     }
